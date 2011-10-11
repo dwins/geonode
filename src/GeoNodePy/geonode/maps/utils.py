@@ -27,15 +27,19 @@ class GeoNodeException(Exception):
     """Base class for exceptions in this module."""
     pass
 
+vector_extensions = [".shp"]
+raster_extensions = ['.tif', '.tiff', '.geotiff', '.geotif']
+known_extensions = vector_extensions + raster_extensions
+
 def layer_type(filename):
     """Finds out if a filename is a Feature or a Vector
        returns a gsconfig resource_type string
        that can be either 'featureType' or 'coverage'
     """
     base_name, extension = os.path.splitext(filename)
-    if extension.lower() in ['.shp',]:
+    if extension.lower() in vector_extensions:
         return FeatureType.resource_type
-    elif extension.lower() in ['.tif', '.tiff', '.geotiff', '.geotif']:
+    elif extension.lower() in raster_extensions:
         return Coverage.resource_type
     else:
         msg = ('Saving of extension [%s] is not implemented' % extension)
