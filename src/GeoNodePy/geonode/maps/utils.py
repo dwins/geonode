@@ -20,6 +20,7 @@ import traceback
 import inspect
 import string
 import urllib2
+import zipfile
 
 logger = logging.getLogger("geonode.maps.utils")
 
@@ -31,6 +32,14 @@ vector_extensions = [".shp"]
 raster_extensions = ['.tif', '.tiff', '.geotiff', '.geotif']
 known_extensions = vector_extensions + raster_extensions
 
+def looks_like_vector(s):
+    _, ext = os.path.splitext(s)
+    return (ext in vector_extensions)
+
+def looks_like_raster(s):
+    _, ext = os.path.splitext(s)
+    return (ext in raster_extensions)
+
 def layer_type(filename):
     """Finds out if a filename is a Feature or a Vector
        returns a gsconfig resource_type string
@@ -41,9 +50,42 @@ def layer_type(filename):
         return FeatureType.resource_type
     elif extension.lower() in raster_extensions:
         return Coverage.resource_type
+    elif extension.lower() in ('.zip'):
+        return layer_type_for_archive(filename)
     else:
         msg = ('Saving of extension [%s] is not implemented' % extension)
         raise GeoNodeException(msg)
+
+def layer_type_for_archive(filename):
+    archive = None
+    try:
+        archive = zipfile.ZipFile(filename, 'r')
+        names = archive.namelist()
+        vectors = filter(lambda n: looks_like_vector(n), names)
+        rasters = filter(lambda n: looks_like_raster(n), names)
+        vector_count = len(vectors)
+        raster_count = len(rasters)
+        total = vector_count + raster_count
+        assert total == 1, "Only one dataset per upload supported"
+        # TODO: Remove restriction on filenames in zip archives
+        if vector_count == 1:
+            arcroot, _ = os.path.splitext(os.path.basename(filename))
+            dataroot, _ = os.path.splitext(os.path.basename(vectors[0]))
+            assert arcroot == dataroot, "Zip archive must have the same base name as its contents"
+            return FeatureType.resource_type
+        else:
+            arcroot, _ = os.path.splitext(os.path.basename(filename))
+            dataroot, _ = os.path.splitext(os.path.basename(rasters[0]))
+            assert arcroot == dataroot, "Zip archive must have the same base name as its contents"
+            return Coverage.resource_type
+    except Exception, e:
+        raise
+        # ex = GeoNodeException("Inspection of Zip archive failed")
+        # ex.__cause__ = e
+        # raise ex
+    finally:
+        if archive is not None:
+            archive.close()
 
 def get_files(filename):
     """Converts the data to Shapefiles or Geotiffs and returns

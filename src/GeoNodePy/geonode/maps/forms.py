@@ -24,7 +24,7 @@ class LayerUploadForm(forms.Form):
     def clean(self):
         cleaned = super(LayerUploadForm, self).clean()
         base_name, base_ext = os.path.splitext(cleaned["base_file"].name)
-        if base_ext.lower() not in (known_extensions):
+        if base_ext.lower() not in (known_extensions + [".zip"]):
             raise forms.ValidationError("Only Shapefiles and GeoTiffs are supported. You uploaded a %s file" % base_ext)
         if base_ext.lower() == ".shp":
             dbf_file = cleaned["dbf_file"]
