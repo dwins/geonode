@@ -239,7 +239,7 @@ def save(layer, base_file, user, overwrite = True, title=None, abstract=None, pe
                     existing_type = resource.resource_type
                     if existing_type != the_layer_type:
                         msg =  ('Type of uploaded file %s (%s) does not match type '
-                            'of existing resource type %s' % (layer_name, the_layer_type, existing_type))
+                            'of existing resource type %s' % (name, the_layer_type, existing_type))
                         logger.info(msg)
                         raise GeoNodeException(msg)
 
@@ -260,7 +260,7 @@ def save(layer, base_file, user, overwrite = True, title=None, abstract=None, pe
             cat.create_coveragestore(name, data, overwrite=overwrite)
             return cat.get_store(name), cat.get_resource(name)
     else:
-        msg = 'The layer type for name %s is %s. It should be %s or %s,' % (layer_name, the_layer_type,
+        msg = 'The layer type for name %s is %s. It should be %s or %s,' % (name, the_layer_type,
                                                                             FeatureType.resource_type,
                                                                             Coverage.resource_type)
         logger.warn(msg)
@@ -307,7 +307,7 @@ def save(layer, base_file, user, overwrite = True, title=None, abstract=None, pe
     if gs_resource is not None:
         assert gs_resource.name == name
     else:
-        msg = ('GeoServer returne resource as None for layer %s.'
+        msg = ('GeoServer returned resource as None for layer %s.'
                'What does that mean? ' % name)
         logger.warn(msg)
         raise GeoNodeException(msg)
