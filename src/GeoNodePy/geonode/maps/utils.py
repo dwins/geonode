@@ -19,6 +19,7 @@ import glob
 import traceback
 import inspect
 import string
+import tempfile
 import urllib2
 import zipfile
 
@@ -30,7 +31,9 @@ class GeoNodeException(Exception):
 
 vector_extensions = [".shp"]
 raster_extensions = ['.tif', '.tiff', '.geotiff', '.geotif']
+shapefile_helper_extensions = ['.shx', '.dbf', '.prj']
 known_extensions = vector_extensions + raster_extensions
+all_known_extensions = known_extensions + shapefile_helper_extensions
 
 def looks_like_vector(s):
     _, ext = os.path.splitext(s)
@@ -129,6 +132,58 @@ def get_files(filename):
         raise GeoNodeException(msg)
 
     return files
+
+def prepare_upload_archive(basefile, name):
+    # Is it a Zip archive already?
+    if basefile.lower().endswith(".zip"):
+        def to_remove(entry):
+            in_root = "/" not in entry
+            has_same_base = os.path.splitext(entry)[0] == basefile
+            has_known_extension = os.path.splitext(entry)[1] in all_known_extensions
+            return not (in_root and has_same_base and has_known_extension)
+
+        def to_rename(entry):
+            has_same_base = os.path.splitext(entry)[0] == basefile
+            has_known_extension = os.path.splitext(entry)[1] in all_known_extensions
+            return (not has_same_base) and has_known_extension
+
+        def to_include(entry):
+            has_known_extension = os.path.splitext(entry)[1] in all_known_extensions
+            return has_known_extension
+
+        archive = zipfile.ZipFile(basefile, "r")
+        entries = archive.namelist()
+        needs_removal = len(filter(to_remove, entries))
+        needs_rename = len(filter(to_rename, entries))
+        needs_rewrite = (needs_rename or needs_removal)
+
+        if needs_rewrite:
+            # TODO: create new zip archive with just the necessary files
+            new_archive_path = tempfile.mkstemp()[1]
+            new_archive = zipfile.ZipFile(new_archive_path, 'w')
+            blob_path = tempfile.mkstemp()[1]
+            includable_entries = filter(to_include, entries)
+            for entry in includable_entries:
+                ext = os.path.splitext(entry)[1]
+                # write blob to temp file
+                handle = archive.open(entry)
+                new_archive.writestr("%s.%s" % (name, ext), handle.read())
+                handle.close()
+                # add temp file to archive
+                # remove tempfile
+            os.remove(blob_path)
+            new_archive.close()
+            return new_archive_path
+        else:
+            return basefile
+    else: # not a zip archive
+        components = get_files(basefile)
+        archive_path = tempfile.mkstemp()[1]
+        archive = zipfile.ZipFile(archive_path, 'w')
+        for ext, path in components.iteritems():
+            archive.write(path, arcname=("%s.%s" % (name, ext)))
+        archive.close()
+        return archive_path
 
 def get_valid_name(layer_name):
     """Create a brand new name
@@ -311,17 +366,7 @@ def save(layer, base_file, user, overwrite = True, title=None, abstract=None, pe
     # Step 4. Create the store in GeoServer
     logger.info('>>> Step 4. Starting upload of [%s] to GeoServer...', name)
 
-    # Get the helper files if they exist
-    files = get_files(base_file)
-
-    data = files
-
-    #FIXME: DONT DO THIS
-    #-------------------
-    if 'shp' not in files:
-        main_file = files['base']
-        data = main_file
-    # ------------------
+    data = prepare_upload_archive(base_file, name)
 
     try:
         store, gs_resource = create_store_and_resource(name, data, overwrite=overwrite)
@@ -380,8 +425,9 @@ def save(layer, base_file, user, overwrite = True, title=None, abstract=None, pe
     logger.info('>>> Step 7. Creating style for [%s]' % name)
     publishing = cat.get_layer(name)
 
-    if 'sld' in files:
-        f = open(files['sld'], 'r')
+    sld_file = os.path.splitext(base_file)[0] + ".sld"
+    if os.path.exists(sld_file):
+        f = open(sld_file, 'r')
         sld = f.read()
         f.close()
     else:
