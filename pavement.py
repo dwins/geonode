@@ -249,10 +249,11 @@ def setup_geonode_client(options):
     src_url = str(options.config.parser.get('geonode-client', 'geonode_client_zip_url'))
     dst_zip = static / "geonode-client.zip"
 
-    grab(src_url, dst_zip)
+    # grab(src_url, dst_zip)
+    dst_zip = "/home/dwins/Projects/geonode-client/build/geonode-client.zip"
 
     zip_extractall(zipfile.ZipFile(dst_zip), static)
-    dst_zip.remove()
+    # dst_zip.remove()
 
 @task
 def sync_django_db(options):
