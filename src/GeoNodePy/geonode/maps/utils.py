@@ -292,6 +292,7 @@ def save(layer, base_file, user, overwrite = True, title=None, abstract=None, pe
     logger.info(_separator)
     logger.info('Uploading layer: [%s], base filename: [%s]', layer, base_file)
 
+
     # Step 0. Verify the file exists
     logger.info('>>> Step 0. Verify if the file %s exists so we can create the layer [%s]' % (base_file, layer))
     if not os.path.exists(base_file):
@@ -517,6 +518,21 @@ def save(layer, base_file, user, overwrite = True, title=None, abstract=None, pe
         # Deleting the layer
         saved_layer.delete()
         raise
+
+    # TODO: Make this sort of thing pluggable
+    try:
+        if os.path.splitext(base_file)[1].lower() == ".zip":
+            archive = zipfile.ZipFile(base_file, 'r')
+            # TODO: More robust photo detection: what about .jpeg files, html documents named .jpg, etc?
+            names = filter(lambda x: x.lower().endswith(".jpg"), archive.namelist())
+            outdir = os.path.join(settings.MEDIA_ROOT, "photo_layers")
+            if not os.path.isdir(outdir):
+                os.makedirs(outdir)
+            for n in names:
+                # TODO: generate thumbnails
+                archive.extract(n, outdir)
+    except:
+        logger.exception("Error during photo extraction, some features may not have photos")
 
     # Return the created layer object
     return saved_layer
