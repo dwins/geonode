@@ -22,6 +22,7 @@ import string
 import tempfile
 import urllib2
 import zipfile
+from PIL import Image
 
 logger = logging.getLogger("geonode.maps.utils")
 
@@ -529,8 +530,15 @@ def save(layer, base_file, user, overwrite = True, title=None, abstract=None, pe
             if not os.path.isdir(outdir):
                 os.makedirs(outdir)
             for n in names:
-                # TODO: generate thumbnails
-                archive.extract(n, outdir)
+                try:
+                    archive.extract(n, outdir)
+                    image_file = os.path.join(outdir, n)
+                    base, ext = os.path.splitext(image_file)
+                    image = Image.open(image_file)
+                    image.thumbnail((400, 200), Image.ANTIALIAS)
+                    image.save(base + ".thumbnail" + ext)
+                except:
+                    logger.exception("couldn't create thumbnail for %s", image_file)
     except:
         logger.exception("Error during photo extraction, some features may not have photos")
 
