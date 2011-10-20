@@ -526,19 +526,33 @@ def save(layer, base_file, user, overwrite = True, title=None, abstract=None, pe
             archive = zipfile.ZipFile(base_file, 'r')
             # TODO: More robust photo detection: what about .jpeg files, html documents named .jpg, etc?
             names = filter(lambda x: x.lower().endswith(".jpg"), archive.namelist())
-            outdir = os.path.join(settings.MEDIA_ROOT, "photo_layers")
-            if not os.path.isdir(outdir):
-                os.makedirs(outdir)
+            thumbnails = filter(lambda x: "thumbnail" in x, names)
+            full = filter(lambda x: "thumbnail" not in x, names)
+            thumbnail_dir = os.path.join(settings.MEDIA_ROOT, "photo_layers", name, "thumbnails")
+            out_dir = os.path.join(settings.MEDIA_ROOT, "photo_layers", name)
+
+            if not os.path.isdir(thumbnail_dir):
+                os.makedirs(thumbnail_dir) # this implicitly creates out_dir so we don't have to
+
+            # try extracting thumbnails first
+            for n in thumbnails:
+                try:
+                    archive.extract(n, thumbnail_dir)
+                except:
+                    logger.exception("couldn't extract thumbnail: %s", n)
+
+            # now try fullsize images - if the thumbnail didn't come out we can make one now
             for n in names:
                 try:
-                    archive.extract(n, outdir)
-                    image_file = os.path.join(outdir, n)
-                    base, ext = os.path.splitext(image_file)
-                    image = Image.open(image_file)
-                    image.thumbnail((400, 200), Image.ANTIALIAS)
-                    image.save(base + ".thumbnail" + ext)
+                    archive.extract(n, out_dir)
+                    image_file = os.path.join(out_dir, n)
+                    thumbnail_file = os.path.join(thumbnail_dir, os.path.basename(image_file))
+                    if not os.path.isfile(thumbnail_file):
+                        image = Image.open(image_file)
+                        image.thumbnail((400, 200), Image.ANTIALIAS)
+                        image.save(thumbnail_file)
                 except:
-                    logger.exception("couldn't create thumbnail for %s", image_file)
+                    logger.exception("couldn't extract image: %s", n)
     except:
         logger.exception("Error during photo extraction, some features may not have photos")
 
