@@ -21,9 +21,11 @@
                 tools: [{
                     ptype: "gxp_wmsgetfeatureinfo",
                     // uncomment the line below if you want feature info in a grid
-                    //format: "grid",
+                    format: "grid",
                     actionTarget: "main.tbar",
-                    outputConfig: {width: 400, height: 200, panIn: false}
+                    outputConfig: {width: 400, height: 200, panIn: false},
+                    itemConfig: {xtype: "app_photogrid"},
+                    controlOptions: {maxFeatures: 3}
                 }],
                 proxy: "/proxy/?url=",
                 localGeoServerBaseUrl: "{{GEOSERVER_BASE_URL}}",
