@@ -55,4 +55,6 @@ urlpatterns += proxy_urlpatterns
 
 # Extra static file endpoint for development use
 if settings.SERVE_MEDIA:
+    urlpatterns += \
+        patterns('django.views.static', (r'^site_media/(?P<path>.*)$', 'serve', {'document_root': settings.MEDIA_ROOT}),)
     urlpatterns += staticfiles_urlpatterns()

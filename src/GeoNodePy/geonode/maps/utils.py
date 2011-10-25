@@ -19,7 +19,10 @@ import glob
 import traceback
 import inspect
 import string
+import tempfile
 import urllib2
+import zipfile
+from PIL import Image
 
 logger = logging.getLogger("geonode.maps.utils")
 
@@ -27,19 +30,66 @@ class GeoNodeException(Exception):
     """Base class for exceptions in this module."""
     pass
 
+vector_extensions = [".shp"]
+raster_extensions = ['.tif', '.tiff', '.geotiff', '.geotif']
+shapefile_helper_extensions = ['.shx', '.dbf', '.prj']
+known_extensions = vector_extensions + raster_extensions
+all_known_extensions = known_extensions + shapefile_helper_extensions
+
+def looks_like_vector(s):
+    _, ext = os.path.splitext(s)
+    return (ext in vector_extensions)
+
+def looks_like_raster(s):
+    _, ext = os.path.splitext(s)
+    return (ext in raster_extensions)
+
 def layer_type(filename):
     """Finds out if a filename is a Feature or a Vector
        returns a gsconfig resource_type string
        that can be either 'featureType' or 'coverage'
     """
     base_name, extension = os.path.splitext(filename)
-    if extension.lower() in ['.shp',]:
+    if extension.lower() in vector_extensions:
         return FeatureType.resource_type
-    elif extension.lower() in ['.tif', '.tiff', '.geotiff', '.geotif']:
+    elif extension.lower() in raster_extensions:
         return Coverage.resource_type
+    elif extension.lower() in ('.zip'):
+        return layer_type_for_archive(filename)
     else:
         msg = ('Saving of extension [%s] is not implemented' % extension)
         raise GeoNodeException(msg)
+
+def layer_type_for_archive(filename):
+    archive = None
+    try:
+        archive = zipfile.ZipFile(filename, 'r')
+        names = archive.namelist()
+        vectors = filter(lambda n: looks_like_vector(n), names)
+        rasters = filter(lambda n: looks_like_raster(n), names)
+        vector_count = len(vectors)
+        raster_count = len(rasters)
+        total = vector_count + raster_count
+        assert total == 1, "Only one dataset per upload supported"
+        # TODO: Remove restriction on filenames in zip archives
+        if vector_count == 1:
+            arcroot, _ = os.path.splitext(os.path.basename(filename))
+            dataroot, _ = os.path.splitext(os.path.basename(vectors[0]))
+            assert arcroot == dataroot, "Zip archive must have the same base name as its contents"
+            return FeatureType.resource_type
+        else:
+            arcroot, _ = os.path.splitext(os.path.basename(filename))
+            dataroot, _ = os.path.splitext(os.path.basename(rasters[0]))
+            assert arcroot == dataroot, "Zip archive must have the same base name as its contents"
+            return Coverage.resource_type
+    except Exception, e:
+        raise
+        # ex = GeoNodeException("Inspection of Zip archive failed")
+        # ex.__cause__ = e
+        # raise ex
+    finally:
+        if archive is not None:
+            archive.close()
 
 def get_files(filename):
     """Converts the data to Shapefiles or Geotiffs and returns
@@ -83,6 +133,58 @@ def get_files(filename):
         raise GeoNodeException(msg)
 
     return files
+
+def prepare_upload_archive(basefile, name):
+    # Is it a Zip archive already?
+    if basefile.lower().endswith(".zip"):
+        def to_remove(entry):
+            in_root = "/" not in entry
+            has_same_base = os.path.splitext(entry)[0] == basefile
+            has_known_extension = os.path.splitext(entry)[1] in all_known_extensions
+            return not (in_root and has_same_base and has_known_extension)
+
+        def to_rename(entry):
+            has_same_base = os.path.splitext(entry)[0] == basefile
+            has_known_extension = os.path.splitext(entry)[1] in all_known_extensions
+            return (not has_same_base) and has_known_extension
+
+        def to_include(entry):
+            has_known_extension = os.path.splitext(entry)[1] in all_known_extensions
+            return has_known_extension
+
+        archive = zipfile.ZipFile(basefile, "r")
+        entries = archive.namelist()
+        needs_removal = len(filter(to_remove, entries))
+        needs_rename = len(filter(to_rename, entries))
+        needs_rewrite = (needs_rename or needs_removal)
+
+        if needs_rewrite:
+            # TODO: create new zip archive with just the necessary files
+            new_archive_path = tempfile.mkstemp()[1]
+            new_archive = zipfile.ZipFile(new_archive_path, 'w')
+            blob_path = tempfile.mkstemp()[1]
+            includable_entries = filter(to_include, entries)
+            for entry in includable_entries:
+                ext = os.path.splitext(entry)[1]
+                # write blob to temp file
+                handle = archive.open(entry)
+                new_archive.writestr("%s.%s" % (name, ext), handle.read())
+                handle.close()
+                # add temp file to archive
+                # remove tempfile
+            os.remove(blob_path)
+            new_archive.close()
+            return new_archive_path
+        else:
+            return basefile
+    else: # not a zip archive
+        components = get_files(basefile)
+        archive_path = tempfile.mkstemp()[1]
+        archive = zipfile.ZipFile(archive_path, 'w')
+        for ext, path in components.iteritems():
+            archive.write(path, arcname=("%s.%s" % (name, ext)))
+        archive.close()
+        return archive_path
 
 def get_valid_name(layer_name):
     """Create a brand new name
@@ -191,6 +293,7 @@ def save(layer, base_file, user, overwrite = True, title=None, abstract=None, pe
     logger.info(_separator)
     logger.info('Uploading layer: [%s], base filename: [%s]', layer, base_file)
 
+
     # Step 0. Verify the file exists
     logger.info('>>> Step 0. Verify if the file %s exists so we can create the layer [%s]' % (base_file, layer))
     if not os.path.exists(base_file):
@@ -235,7 +338,7 @@ def save(layer, base_file, user, overwrite = True, title=None, abstract=None, pe
                     existing_type = resource.resource_type
                     if existing_type != the_layer_type:
                         msg =  ('Type of uploaded file %s (%s) does not match type '
-                            'of existing resource type %s' % (layer_name, the_layer_type, existing_type))
+                            'of existing resource type %s' % (name, the_layer_type, existing_type))
                         logger.info(msg)
                         raise GeoNodeException(msg)
 
@@ -256,7 +359,7 @@ def save(layer, base_file, user, overwrite = True, title=None, abstract=None, pe
             cat.create_coveragestore(name, data, overwrite=overwrite)
             return cat.get_store(name), cat.get_resource(name)
     else:
-        msg = 'The layer type for name %s is %s. It should be %s or %s,' % (layer_name, the_layer_type,
+        msg = 'The layer type for name %s is %s. It should be %s or %s,' % (name, the_layer_type,
                                                                             FeatureType.resource_type,
                                                                             Coverage.resource_type)
         logger.warn(msg)
@@ -265,17 +368,7 @@ def save(layer, base_file, user, overwrite = True, title=None, abstract=None, pe
     # Step 4. Create the store in GeoServer
     logger.info('>>> Step 4. Starting upload of [%s] to GeoServer...', name)
 
-    # Get the helper files if they exist
-    files = get_files(base_file)
-
-    data = files
-
-    #FIXME: DONT DO THIS
-    #-------------------
-    if 'shp' not in files:
-        main_file = files['base']
-        data = main_file
-    # ------------------
+    data = prepare_upload_archive(base_file, name)
 
     try:
         store, gs_resource = create_store_and_resource(name, data, overwrite=overwrite)
@@ -303,7 +396,7 @@ def save(layer, base_file, user, overwrite = True, title=None, abstract=None, pe
     if gs_resource is not None:
         assert gs_resource.name == name
     else:
-        msg = ('GeoServer returne resource as None for layer %s.'
+        msg = ('GeoServer returned resource as None for layer %s.'
                'What does that mean? ' % name)
         logger.warn(msg)
         raise GeoNodeException(msg)
@@ -334,8 +427,9 @@ def save(layer, base_file, user, overwrite = True, title=None, abstract=None, pe
     logger.info('>>> Step 7. Creating style for [%s]' % name)
     publishing = cat.get_layer(name)
 
-    if 'sld' in files:
-        f = open(files['sld'], 'r')
+    sld_file = os.path.splitext(base_file)[0] + ".sld"
+    if os.path.exists(sld_file):
+        f = open(sld_file, 'r')
         sld = f.read()
         f.close()
     else:
@@ -425,6 +519,42 @@ def save(layer, base_file, user, overwrite = True, title=None, abstract=None, pe
         # Deleting the layer
         saved_layer.delete()
         raise
+
+    # TODO: Make this sort of thing pluggable
+    try:
+        if os.path.splitext(base_file)[1].lower() == ".zip":
+            archive = zipfile.ZipFile(base_file, 'r')
+            # TODO: More robust photo detection: what about .jpeg files, html documents named .jpg, etc?
+            names = filter(lambda x: x.lower().endswith(".jpg"), archive.namelist())
+            thumbnails = filter(lambda x: "thumbnail" in x, names)
+            full = filter(lambda x: "thumbnail" not in x, names)
+            thumbnail_dir = os.path.join(settings.MEDIA_ROOT, "photo_layers", name, "thumbnails")
+            out_dir = os.path.join(settings.MEDIA_ROOT, "photo_layers", name)
+
+            if not os.path.isdir(thumbnail_dir):
+                os.makedirs(thumbnail_dir) # this implicitly creates out_dir so we don't have to
+
+            # try extracting thumbnails first
+            for n in thumbnails:
+                try:
+                    archive.extract(n, thumbnail_dir)
+                except:
+                    logger.exception("couldn't extract thumbnail: %s", n)
+
+            # now try fullsize images - if the thumbnail didn't come out we can make one now
+            for n in names:
+                try:
+                    archive.extract(n, out_dir)
+                    image_file = os.path.join(out_dir, n)
+                    thumbnail_file = os.path.join(thumbnail_dir, os.path.basename(image_file))
+                    if not os.path.isfile(thumbnail_file):
+                        image = Image.open(image_file)
+                        image.thumbnail((400, 200), Image.ANTIALIAS)
+                        image.save(thumbnail_file)
+                except:
+                    logger.exception("couldn't extract image: %s", n)
+    except:
+        logger.exception("Error during photo extraction, some features may not have photos")
 
     # Return the created layer object
     return saved_layer

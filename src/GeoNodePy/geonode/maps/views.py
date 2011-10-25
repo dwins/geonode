@@ -1,6 +1,8 @@
 from geonode.core.models import AUTHENTICATED_USERS, ANONYMOUS_USERS
 from geonode.maps.models import Map, Layer, MapLayer, Contact, ContactRole,Role, get_csw
+from geonode.maps.forms import NewLayerUploadForm
 from geonode.maps.gs_helpers import fixup_style, cascading_delete, delete_from_postgis
+from geonode.maps.utils import save
 from geonode import geonetwork
 import geoserver
 from geoserver.resource import FeatureType, Coverage
@@ -17,9 +19,11 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render_to_response, get_object_or_404
 from django.conf import settings
 from django.template import RequestContext, loader
+from django.utils.html import escape
 from django.utils.translation import ugettext as _
 import json
 import math
+import os, shutil
 import httplib2 
 from owslib.csw import CswRecord, namespaces
 from owslib.util import nspath
@@ -863,10 +867,6 @@ def upload_layer(request):
         return render_to_response('maps/layer_upload.html',
                                   RequestContext(request, {}))
     elif request.method == 'POST':
-        from geonode.maps.forms import NewLayerUploadForm
-        from geonode.maps.utils import save
-        from django.utils.html import escape
-        import os, shutil
         form = NewLayerUploadForm(request.POST, request.FILES)
         tempdir = None
         if form.is_valid():
@@ -913,11 +913,6 @@ def _updateLayer(request, layer):
                                   RequestContext(request, {'layer': layer,
                                                            'is_featuretype': is_featuretype}))
     elif request.method == 'POST':
-        from geonode.maps.forms import LayerUploadForm
-        from geonode.maps.utils import save
-        from django.template import escape
-        import os, shutil
-
         form = LayerUploadForm(request.POST, request.FILES)
         tempdir = None
 
