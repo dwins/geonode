@@ -2,6 +2,7 @@
 {% load geonode_auth %}
 {% load i18n %}
 {% load dialogos_tags %}
+{% load agon_ratings_tags %}
 
 {% block title %} {{ layer.resource.title|default:layer.typename }} - {{ block.super }} {% endblock %}
 
@@ -9,6 +10,7 @@
 {% include "geonode/ext_header.html" %}
 {% include "geonode/app_header.html" %}
 {% include "geonode/geo_header.html" %}
+<script type="text/javascript" src='{{ STATIC_URL }}script/jquery-1.4.3.min.js'> </script>
 
 <link rel="stylesheet" type="text/css" href="{{ GEONODE_CLIENT_LOCATION }}theme/ux/colorpicker/color-picker.ux.css" />
 
@@ -127,6 +129,7 @@
         }
 {% endautoescape %}
     </script>
+    {% user_rating_js user layer "utility" %}
 {% endblock %}
 
 {% block main %}
@@ -202,6 +205,12 @@
 <div id="sidebar" class="threecol">
     <h3> {% trans "Comments and Ratings" %} </h3>
     <div>
+        {% overall_rating layer "utility" as rating %}
+        <div>
+            <p> Rated <span class="overall_rating category-utility">{{ rating }}</span> by all GeoNode users </p>
+            <p> <div id="user_rating"></div> </p>
+            {# <p> Rated {{ this_users_rating }} by you! </p> #}
+            </div>
         {% if user.is_authenticated %}
            {% comment_form layer as layer_comment_form %}
            <form method="POST" action="{% url post_comment content_type_id=layer_content_type.id object_id=layer.pk %}">

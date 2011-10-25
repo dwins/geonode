@@ -270,9 +270,14 @@ def get_user_url(u):
     s = Site.objects.get_current()
     return "http://" + s.domain + "/profiles/" + u.username
 
-
 ABSOLUTE_URL_OVERRIDES = {
     'auth.user': get_user_url
+}
+
+AGON_RATINGS_CATEGORY_CHOICES = {
+     "maps.Layer": {
+         "utility": "How useful is this data?"
+     }
 }
 
 AUTH_PROFILE_MODULE = 'maps.Contact'
