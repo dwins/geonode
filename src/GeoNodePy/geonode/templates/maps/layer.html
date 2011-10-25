@@ -202,15 +202,22 @@
 <div id="sidebar" class="threecol">
     <h3> {% trans "Comments and Ratings" %} </h3>
     <div>
-        {% comment_form layer as layer_comment_form %}
-        <form method="POST" action="{% url post_comment content_type_id=layer_content_type.id object_id=layer.pk %}">
-            {% csrf_token %}
-            {{ layer_comment_form.as_p }}
-            <input type="submit" value="{% trans "Add comment" %}"></input>
-        </form>
+        {% if user.is_authenticated %}
+           {% comment_form layer as layer_comment_form %}
+           <form method="POST" action="{% url post_comment content_type_id=layer_content_type.id object_id=layer.pk %}">
+               {% csrf_token %}
+               {{ layer_comment_form.as_p }}
+               <input type="submit" value="{% trans "Add comment" %}"></input>
+           </form>
+        {% else %}
+          <p><strong>Sign in</strong> to comment on this layer.</p>
+        {% endif %}
         {% comments layer as layer_comments %}
-        {% for com in layer_comments %} 
-           <li> {{com}} </li>
+        {% for com in layer_comments|slice:":4" %} 
+           <div>
+             <p> <strong>{{ com.author }}</strong> commented on {{ com.submit_date }}: </p>
+             <p> {{ com.comment }} </p>
+           </div>
         {% endfor %}
     </div>
     <h3> {% trans "Download" %} </h3>
