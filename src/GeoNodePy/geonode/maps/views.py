@@ -9,6 +9,7 @@ from django import forms
 from django.contrib.auth import authenticate, get_backends as get_auth_backends
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from django.contrib.contenttypes.models import ContentType
 from django.contrib.gis.geos import GEOSGeometry
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
@@ -840,6 +841,7 @@ def layer_detail(request, layername):
 
     return render_to_response('maps/layer.html', RequestContext(request, {
         "layer": layer,
+        "layer_content_type": ContentType.objects.get_for_model(layer),
         "metadata": metadata,
         "viewer": json.dumps(map.viewer_json(* (DEFAULT_BASE_LAYERS + [maplayer]))),
         "permissions_json": _perms_info_json(layer, LAYER_LEV_NAMES),

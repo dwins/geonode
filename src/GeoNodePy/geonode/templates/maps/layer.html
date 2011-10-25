@@ -1,6 +1,7 @@
 {% extends "page_layout.html" %}
 {% load geonode_auth %}
 {% load i18n %}
+{% load dialogos_tags %}
 
 {% block title %} {{ layer.resource.title|default:layer.typename }} - {{ block.super }} {% endblock %}
 
@@ -199,6 +200,19 @@
 
 {% block sidebar %}
 <div id="sidebar" class="threecol">
+    <h3> {% trans "Comments and Ratings" %} </h3>
+    <div>
+        {% comment_form layer as layer_comment_form %}
+        <form method="POST" action="{% url post_comment content_type_id=layer_content_type.id object_id=layer.pk %}">
+            {% csrf_token %}
+            {{ layer_comment_form.as_p }}
+            <input type="submit" value="{% trans "Add comment" %}"></input>
+        </form>
+        {% comments layer as layer_comments %}
+        {% for com in layer_comments %} 
+           <li> {{com}} </li>
+        {% endfor %}
+    </div>
     <h3> {% trans "Download" %} </h3>
     <p> <strong>{% trans "Data" %}: </strong>
         {% for extension, type, link in layer.download_links %}
