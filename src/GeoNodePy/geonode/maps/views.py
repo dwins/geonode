@@ -603,6 +603,7 @@ def mapdetail(request,mapid):
     return render_to_response("maps/mapinfo.html", RequestContext(request, {
         'config': config, 
         'map': map,
+        'map_content_type': ContentType.objects.get_for_model(map),
         'layers': layers,
         'permissions_json': json.dumps(_perms_info(map, MAP_LEV_NAMES))
     }))

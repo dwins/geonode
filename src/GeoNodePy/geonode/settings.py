@@ -277,6 +277,9 @@ ABSOLUTE_URL_OVERRIDES = {
 AGON_RATINGS_CATEGORY_CHOICES = {
      "maps.Layer": {
          "utility": "How useful is this data?"
+     },
+     "maps.Map": {
+         "utility": "How useful is this map?"
      }
 }
 
