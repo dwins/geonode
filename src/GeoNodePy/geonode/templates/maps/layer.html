@@ -129,7 +129,9 @@
         }
 {% endautoescape %}
     </script>
+    {% if user.is_authenticated %}
     {% user_rating_js user layer "utility" %}
+    {% endif %}
 {% endblock %}
 
 {% block main %}
