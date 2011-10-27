@@ -199,20 +199,32 @@
 
 {% if layer.geographic_bounding_box %}<p> <strong>{% trans "Bounding Box" %}:</strong> {{ layer.geographic_bounding_box }} </p>{% endif %}
 {% if layer.metadata.crsOptions %}<p> <strong>{% trans "Native SRS" %}:</strong> {{ layer.metadata.crsOptions.0|default:_("No SRS specified.") }} </p>{% endif %}
-
-</div>
-{% endblock %}
-
-{% block sidebar %}
-<div id="sidebar" class="threecol">
-    <h3> {% trans "Comments and Ratings" %} </h3>
+    <h3> {% trans "Comments" %} </h3>
     <div>
         {% overall_rating layer "utility" as rating %}
         <div>
-            <p> Rated <span class="overall_rating category-utility">{{ rating }}</span> by all GeoNode users </p>
-            <p> <div id="user_rating"></div> </p>
-            {# <p> Rated {{ this_users_rating }} by you! </p> #}
-            </div>
+            <p> 
+            <div class="right"> 
+            {% if user.is_authenticated %}
+              <strong>{% trans "Your rating: " %}</strong> <div class="rating_wrap"><div id="user_rating"></div></div>
+            {% else %}
+              <strong><a href="/accounts/login/">{% trans "Sign in" %}</a> </strong>{% trans "to rate this layer." %}
+            {% endif %}
+             </div>
+            <div>Rated <span class="overall_rating category-utility">{{ rating }}</span> by all GeoNode users </div>
+            </p>
+        </div>
+        {% comments layer as layer_comments %}
+        <div class="comments">
+        {% for com in layer_comments|slice:":4" %} 
+           <div class="comment">
+             <p> <strong><a href={% url profiles_profile_detail username=com.author.username %}>{{ com.author }}</a></strong> commented on {{ com.submit_date }}: </p>
+             <p> {{ com.comment }} </p>
+           </div>
+        {% endfor %}
+
+        <div class="comment_new">
+          <h4>{% trans "Leave a comment" %}</h4>
         {% if user.is_authenticated %}
            {% comment_form layer as layer_comment_form %}
            <form method="POST" action="{% url post_comment content_type_id=layer_content_type.id object_id=layer.pk %}">
@@ -221,16 +233,16 @@
                <input type="submit" value="{% trans "Add comment" %}"></input>
            </form>
         {% else %}
-          <p><strong>Sign in</strong> to comment on this layer.</p>
+              <p><strong><a href="/accounts/login/">{% trans "Sign in" %}</a> </strong>{% trans "to comment on this layer." %}</p>
         {% endif %}
-        {% comments layer as layer_comments %}
-        {% for com in layer_comments|slice:":4" %} 
-           <div>
-             <p> <strong>{{ com.author }}</strong> commented on {{ com.submit_date }}: </p>
-             <p> {{ com.comment }} </p>
-           </div>
-        {% endfor %}
+        </div>
     </div>
+</div>
+</div>
+{% endblock %}
+
+{% block sidebar %}
+<div id="sidebar" class="threecol">
     <h3> {% trans "Download" %} </h3>
     <p> <strong>{% trans "Data" %}: </strong>
         {% for extension, type, link in layer.download_links %}
