@@ -20,9 +20,14 @@ display: block;
 * html .selfclear {
 zoom: 1; /* IE < 7 */
 }
-
-.nodisplay { 
+.nodisplay, .hidden { 
 display: none;
+}
+.right {
+float: right;
+}
+.left {
+float: left;
 }
 
 /*-----------------------
@@ -530,7 +535,36 @@ font-size: 0.6em;
 padding-left: 0.25em;
 color: #888;
 }
-
+.langbar {
+     margin-right: 150px;
+     right: 0;
+     position: absolute;
+     padding-top: 5px;
+}
+.rating_wrap {
+  display: inline-block;
+}
+.comments {
+  clear: both;
+  border-top: 1px solid #999;
+  padding-top: 0.75em;
+}
+.comment {
+  clear: both;
+  border-bottom: 1px solid #999;
+  margin-bottom: 0.75em;
+}
+.comment p {
+  margin: 0;
+  padding: 0.5em;
+}
+.comment_new h4,
+.comment_new p {
+  margin: 0 0 0.5em;
+}
+.comment_new textarea#id_comment {
+  width: 99%;
+}
 
 /*-----------------------
 Index Elements
@@ -746,10 +780,3 @@ cursor: pointer;
 }
 
 .x-list-body dl { margin: 0; }
-
-.langbar {
-     margin-right: 150px;
-     right: 0;
-     position: absolute;
-     padding-top: 5px;
-}

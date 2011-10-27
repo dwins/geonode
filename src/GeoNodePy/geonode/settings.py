@@ -260,7 +260,9 @@ INSTALLED_APPS = (
     'geonode.core',
     'geonode.maps',
     'geonode.proxy',
-    'geonode'
+    'geonode',
+    'agon_ratings',
+    'dialogos'
 )
 
 def get_user_url(u):
@@ -268,9 +270,17 @@ def get_user_url(u):
     s = Site.objects.get_current()
     return "http://" + s.domain + "/profiles/" + u.username
 
-
 ABSOLUTE_URL_OVERRIDES = {
     'auth.user': get_user_url
+}
+
+AGON_RATINGS_CATEGORY_CHOICES = {
+     "maps.Layer": {
+         "utility": "How useful is this data?"
+     },
+     "maps.Map": {
+         "utility": "How useful is this map?"
+     }
 }
 
 AUTH_PROFILE_MODULE = 'maps.Contact'

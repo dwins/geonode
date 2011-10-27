@@ -1,6 +1,8 @@
 {% extends "page_layout.html" %}
 {% load geonode_auth %}
 {% load i18n %}
+{% load dialogos_tags %}
+{% load agon_ratings_tags %}
 
 {% block title %} {{ layer.resource.title|default:layer.typename }} - {{ block.super }} {% endblock %}
 
@@ -8,6 +10,7 @@
 {% include "geonode/ext_header.html" %}
 {% include "geonode/app_header.html" %}
 {% include "geonode/geo_header.html" %}
+<script type="text/javascript" src='{{ STATIC_URL }}script/jquery-1.4.3.min.js'> </script>
 
 <link rel="stylesheet" type="text/css" href="{{ GEONODE_CLIENT_LOCATION }}theme/ux/colorpicker/color-picker.ux.css" />
 
@@ -79,7 +82,7 @@
             Ext.get(Ext.DomQuery.select("select[@name='default-style']")).on("change", function(evt, elem) {
                 Ext.Ajax.request({
                     method: "post",
-                    url: "?style",
+                    url: "{% url layer_style layer.typename %}",
                     params: {"defaultStyle" : elem.value}
                 });
             });
@@ -128,6 +131,9 @@
         }
 {% endautoescape %}
     </script>
+    {% if user.is_authenticated %}
+    {% user_rating_js user layer "utility" %}
+    {% endif %}
 {% endblock %}
 
 {% block main %}
@@ -195,7 +201,45 @@
 
 {% if layer.geographic_bounding_box %}<p> <strong>{% trans "Bounding Box" %}:</strong> {{ layer.geographic_bounding_box }} </p>{% endif %}
 {% if layer.metadata.crsOptions %}<p> <strong>{% trans "Native SRS" %}:</strong> {{ layer.metadata.crsOptions.0|default:_("No SRS specified.") }} </p>{% endif %}
+    <h3> {% trans "Comments" %} </h3>
+    <div>
+        {% overall_rating layer "utility" as rating %}
+        <div>
+            <p> 
+            <div class="right"> 
+            {% if user.is_authenticated %}
+              <strong>{% trans "Your rating: " %}</strong> <div class="rating_wrap"><div id="user_rating"></div></div>
+            {% else %}
+              <strong><a href="/accounts/login/">{% trans "Sign in" %}</a> </strong>{% trans "to rate this layer." %}
+            {% endif %}
+             </div>
+            <div>Rated <span class="overall_rating category-utility">{{ rating }}</span> by all GeoNode users </div>
+            </p>
+        </div>
+        {% comments layer as layer_comments %}
+        <div class="comments">
+        {% for com in layer_comments|slice:":4" %} 
+           <div class="comment">
+             <p> <strong><a href={% url profiles_profile_detail username=com.author.username %}>{{ com.author }}</a></strong> commented on {{ com.submit_date }}: </p>
+             <p> {{ com.comment }} </p>
+           </div>
+        {% endfor %}
 
+        <div class="comment_new">
+          <h4>{% trans "Leave a comment" %}</h4>
+        {% if user.is_authenticated %}
+           {% comment_form layer as layer_comment_form %}
+           <form method="POST" action="{% url post_comment content_type_id=layer_content_type.id object_id=layer.pk %}">
+               {% csrf_token %}
+               {{ layer_comment_form.as_p }}
+               <input type="submit" value="{% trans "Add comment" %}"></input>
+           </form>
+        {% else %}
+              <p><strong><a href="/accounts/login/">{% trans "Sign in" %}</a> </strong>{% trans "to comment on this layer." %}</p>
+        {% endif %}
+        </div>
+    </div>
+</div>
 </div>
 {% endblock %}
 
@@ -267,17 +311,25 @@
         <ul>
 			{% if user.is_authenticated %}
         {% if can_change %}
-                <li><a href="?describe">{% trans "Update the description of this data" %}</a></li>
-            	<li><a href="?update">{% trans "Upload a new version of this data" %}</a></li>
+        <li> <a href="{% url layer_metadata layer.typename %}">
+            {% trans "Update the description of this data" %}
+        </a> </li>
+        <li> <a href="{% url layer_replace layer.typename %}">
+            {% trans "Upload a new version of this data" %}
+        </a></li>
         {% endif %}
         {% if can_change_permissions %}
-        <li><a href="{% url edit_layer_permissions layer.typename %}">{% trans "Edit Permissions" %}</a></li>
+        <li><a href="{% url edit_layer_permissions layer.typename %}">
+            {% trans "Edit Permissions" %}
+        </a></li>
         {% endif %}
             {% if can_delete %}
-				<li><a href="?remove">{% trans "Remove" %}</a></li>
+            <li><a href="{% url layer_remove layer.typename %}">
+                {% trans "Remove" %}
+            </a></li>
 			{% endif %}
 			{% else %}
-				<li>Please authenticate to update or remove layers</li>
+            <li>{% trans "Please authenticate to update or remove layers" %}</li>
 			{% endif %}
         </ul>
     {% endif %}
