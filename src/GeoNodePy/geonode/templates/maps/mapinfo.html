@@ -62,18 +62,32 @@ Ext.onReady(function() {
   <div id="embedded_map">
   </div>
   <p><strong>{% trans "Contact:" %}</strong> <a href="{{ map.owner.get_profile.get_absolute_url }}">{{ map.owner }}</a></a></p>
-</div>
-{% endblock %}
-{% block sidebar %}
-<div id="sidebar" class="threecol">
-    <h3> {% trans "Comments and Ratings" %} </h3>
+    <h3> {% trans "Comments" %} </h3>
     <div>
         {% overall_rating map "utility" as rating %}
         <div>
-            <p> Rated <span class="overall_rating category-utility">{{ rating }}</span> by all GeoNode users </p>
-            <p> <div id="user_rating"></div> </p>
-            {# <p> Rated {{ this_users_rating }} by you! </p> #}
-            </div>
+            <p> 
+            <div class="right"> 
+            {% if user.is_authenticated %}
+              <strong>{% trans "Your rating: " %}</strong> <div class="rating_wrap"><div id="user_rating"></div></div>
+            {% else %}
+              <strong><a href="/accounts/login/">{% trans "Sign in" %}</a> </strong>{% trans "to rate this map." %}
+            {% endif %}
+             </div>
+            <div>Rated <span class="overall_rating category-utility">{{ rating }}</span> by all GeoNode users </div>
+            </p>
+        </div>
+        {% comments map as map_comments %}
+        <div class="comments">
+        {% for com in map_comments|slice:":4" %} 
+           <div class="comment">
+             <p> <strong><a href={% url profiles_profile_detail username=com.author.username %}>{{ com.author }}</a></strong> commented on {{ com.submit_date }}: </p>
+             <p> {{ com.comment }} </p>
+           </div>
+        {% endfor %}
+
+        <div class="comment_new">
+          <h4>{% trans "Leave a comment" %}</h4>
         {% if user.is_authenticated %}
            {% comment_form map as map_comment_form %}
            <form method="POST" action="{% url post_comment content_type_id=map_content_type.id object_id=map.pk %}">
@@ -82,16 +96,15 @@ Ext.onReady(function() {
                <input type="submit" value="{% trans "Add comment" %}"></input>
            </form>
         {% else %}
-          <p><strong>Sign in</strong> to rate and comment on this map.</p>
+              <p><strong><a href="/accounts/login/">{% trans "Sign in" %}</a> </strong>{% trans "to comment on this map." %}</p>
         {% endif %}
-        {% comments map as map_comments %}
-        {% for com in map_comments|slice:":4" %} 
-           <div>
-             <p> <strong>{{ com.author }}</strong> commented on {{ com.submit_date }}: </p>
-             <p> {{ com.comment }} </p>
-           </div>
-        {% endfor %}
+        </div>
     </div>
+</div>
+</div>
+{% endblock %}
+{% block sidebar %}
+<div id="sidebar" class="threecol">
     <h3>{% trans "Download" %}</h3>
     <p><a href="{% url geonode.maps.views.map_download map.id %}">{% trans "Download all layers included in this map" %}</a></p>
     <h3>{% trans "Layers" %}</h3>
