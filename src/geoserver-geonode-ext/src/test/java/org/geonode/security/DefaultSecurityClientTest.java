@@ -15,6 +15,7 @@ import org.springframework.security.Authentication;
 import org.springframework.security.GrantedAuthority;
 import org.springframework.security.providers.UsernamePasswordAuthenticationToken;
 import org.springframework.security.providers.anonymous.AnonymousAuthenticationToken;
+import org.springframework.security.userdetails.User;
 import org.apache.commons.codec.binary.Base64;
 import org.easymock.classextension.EasyMock;
 import org.geonode.security.LayersGrantedAuthority.LayerMode;
@@ -109,7 +110,7 @@ public class DefaultSecurityClientTest extends TestCase {
         assertNotNull(authentication);
         assertTrue(authentication instanceof GeoNodeSessionAuthToken);
         assertTrue(authentication.isAuthenticated());
-        assertEquals("aang", authentication.getPrincipal());
+        assertEquals("aang", ((User)authentication.getPrincipal()).getUsername());
 
         GrantedAuthority[] authorities = authentication.getAuthorities();
         assertEquals(3, authorities.length);
@@ -146,7 +147,7 @@ public class DefaultSecurityClientTest extends TestCase {
         assertNotNull(authentication);
         assertTrue(authentication instanceof UsernamePasswordAuthenticationToken);
         assertTrue(authentication.isAuthenticated());
-        assertEquals("aang", authentication.getPrincipal());
+        assertEquals("aang", ((User)authentication.getPrincipal()).getUsername());
 
         GrantedAuthority[] authorities = authentication.getAuthorities();
         assertEquals(2, authorities.length);

@@ -32,6 +32,7 @@ import org.springframework.security.GrantedAuthority;
 import org.springframework.security.GrantedAuthorityImpl;
 import org.springframework.security.providers.UsernamePasswordAuthenticationToken;
 import org.springframework.security.providers.anonymous.AnonymousAuthenticationToken;
+import org.springframework.security.userdetails.User;
 import org.springframework.util.Assert;
 
 /**
@@ -96,7 +97,7 @@ public class DefaultSecurityClient implements GeonodeSecurityClient, Application
 
                     cachedAuth = authenticate(cookieValue, headerName, headerValue);
                     if (cachedAuth instanceof UsernamePasswordAuthenticationToken) {
-                        cachedAuth = new GeoNodeSessionAuthToken(cachedAuth.getPrincipal(),
+                        cachedAuth = new GeoNodeSessionAuthToken((User)cachedAuth.getPrincipal(),
                                 cachedAuth.getCredentials(), cachedAuth.getAuthorities());
                     }
                     authCache.put(cookieValue, cachedAuth);
@@ -193,8 +194,10 @@ public class DefaultSecurityClient implements GeonodeSecurityClient, Application
             GrantedAuthority[] grantedAuthorities = authorities
                     .toArray(new GrantedAuthority[authorities.size()]);
 
-            authentication = new UsernamePasswordAuthenticationToken(userName, credentials,
-                    grantedAuthorities);
+            User user = new User(userName, credentials.toString(), true, true, true, true, grantedAuthorities);
+
+            authentication =
+                new UsernamePasswordAuthenticationToken(user, credentials, grantedAuthorities);
         }
         return authentication;
     }
