@@ -5,7 +5,7 @@ About GeoNode
 GeoNode is an open source platform that facilitates the creation, sharing, and collaborative use of geospatial data.
 The project aims to surpass existing spatial data infrastructure solutions by integrating robust social and cartographic tools.
 
-At its core, GeoNode has a stack based on GeoServer, Django, and GeoExt that provides a platform for sophisticated web browser spatial visualization and analysis.
+At its core, GeoNode incorporates GeoServer, Django, and GeoExt to provide a platform for sophisticated web-based spatial visualization and analysis.
 Atop this stack, the project has built a map composer and viewer, tools for analysis, and reporting tools.
 
 
@@ -27,21 +27,23 @@ Geospatial data storage
 GeoNode allows the upload vector and raster data in their original projections using a web form.
 Vector data is uploaded in ESRI Shapefile format and satellite imagery and other kinds of raster data are uploaded as Geotiffs.
 
-Especiall importance is given to standard metadata formats like TC211, after the upload is finished, the user is presented with a form to fill in the metadata and it is made available using a `CSW`_ interface.
+Special importance is given to standard metadata formats such as TC211. 
+After an upload is finished, GeoNode presents the user with a form to fill in the metadata, which is then  made available using a standard `CSW`_ interface.
 
-Similarly, GeoNode provides a web based styler, that lets the user change how the data looks and preview the changes in real time.
+GeoNode also provides a web-based styler, allowing users to change how the data looks and preview the changes interactively with just a web browser.
+
+To read more about GeoNode's data management, see :doc:`/users/upload`.
 
 .. _CSW: http://www.opengeospatial.org/standards/cat
 
+Data mixing and map creation
+============================
 
-Data mixing, maps creation
-==========================
+Once data has been uploaded, GeoNode users can search for it geographically or via keywords and use it to create maps. 
+These maps can incorporate other data from around the web, including popular base layers such as OpenStreetMap and Bing.
+Once maps are saved, it is possible to embed them in any webpage or export to PDF for printing.
 
-Once the data has been uploaded, GeoNode let's the user search for it geographically or via keywords and create maps.
-
-All the layers are automatically reprojected to mercator for the maps, making it possible to use different popular base layers, like Open Street Map, Google Satellite or Bing layers.
-
-Once maps are saved, it is possible to embed them in any webpage or get a PDF version for printing.
+To read more about GeoNode's map composition tools, see :doc:`/users/create`.
 
 
 GeoNode as a building block
@@ -51,11 +53,11 @@ A handful of other Open Source projects, like `Risk in a Box`_ extend GeoNode's 
 
 The development community is very supportive of new projects and contributes ideas and guidance for newcomers.
 
+To read more about GeoNode's community, see :doc:`/developers/contribute`.
+
+.. _Risk in a Box: http://riskinabox.org
 
 Convinced! Where do I sign?
 ===========================
 
-The next obvious steps are to :doc:`install GeoNode </intro/install>`, :doc:`read the tutorials </users/upload>` and `join the community`_. Thanks for your interest!
-
-.. _Risk in a Box: http://riskinabox.org
-.. _join the community: mailto:geonode@librelist.com
+From here you can check out :doc:`/intro/install`, :doc:`/users/upload`, or :doc:`/developers/contribute`.
