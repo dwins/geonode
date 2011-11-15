@@ -2,31 +2,49 @@
 GeoNode Tutorials Overview
 ==========================
 
+Welcome to GeoNode!
+This section of the manual includes some tutorials to help you get started publishing data and making maps with GeoNode.
 
-Downloading material
-====================
+Geospatial Data
+===============
 
-`**Download the data** <https://github.com/downloads/GeoNode/workshops/GeoNode-Workshop-Materials.zip>`_ to use with the tutorials.
-Unzip this to your desktop. You should now have a folder on your desktop called GeoNode-Workshop-Materials.
-In this folder are some sample datasets.
+GeoNode works with geospatial data in Shapefile or GeoTIFF format.
+The GeoNode project has prepared `some example data <https://github.com/downloads/Geonode/workshops/GeoNode-Workshop_Materials.zip>`_ for use with these tutorials.
+If you have some data sets in these formats already available, you can try the tutorials with those as well, but please note that the tutorials may reference specific details of the example data sets.
 
+To get the example data, download from https://github.com/downloads/Geonode/workshops/GeoNode-Workshop_Materials.zip and extract to a local directory such as your desktop, noting the location.
+
+Tutorials
+=========
+
+.. toctree::
+   :maxdepth: 1
+
+   /users/register
+   /users/explore
+   /users/upload
+   /users/create
+   /users/share
 
 Terminology
 ===========
 
 Layers
 ------
-
-In GeoNode you can upload map data (currently Shapefiles or GeoTIFFs) to the GeoNode system. Each map data file you upload is called a “Layer” in GeoNode.  You can control access to your layers by setting permissions.
+In GeoNode you can upload map data (currently Shapefiles or GeoTIFFs) to the GeoNode system.
+Each map data file you upload is called a "Layer" in GeoNode.
+You can control access to your layers by setting permissions.
 
 Maps
 ----
-
-GeoNode allows you to organize your Layers and other people’s Layers together into collections, which you can configure in various ways and save. These collections are called “Maps” in GeoNode. You can control permissions in GeoNode at both the Layer and the Map level.
+GeoNode allows you to organize your Layers and other people’s Layers together into collections, which you can configure in various ways and save.
+These collections are called “Maps” in GeoNode.
+You can control permissions in GeoNode at both the Layer and the Map level.
 
 
 The live demo and local Geonodes
 --------------------------------
 
-To follow these examples, you can use the live demo GeoNode at this `URL <http://demo.geonode.org>`_.
-You can also install your own GeoNode locally or on the cloud and run it as your own web service. Information about how to do that can be found in the :doc:`Quick installation guide </intro/install>`.
+To follow these examples, you can use the live demo GeoNode at http://demo.geonode.org/ .
+If you'd like to use your own GeoNode site instead, you'll need to install GeoNode first.
+See :doc:`/deploy/install` for details.
