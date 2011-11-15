@@ -8,10 +8,13 @@ GeoNode's documentation!
 First Steps
 ===========
 
-The following documents give an overview to GeoNode, the overview document is targeted at non-technical audiences and the quick installation guide at people who just want to get it installed and will come back later to the complete documentation.
+The following documents give an overview to GeoNode.
+:doc:`/intro/overview` is targeted at non-technical audiences and :doc:`intro/install` at people who just want to get it installed and will come back later to the complete documentation.
 
- * :doc:`Overview <intro/overview>`
- * :doc:`Installation <intro/install>`
+.. toctree::
+
+ intro/overview
+ intro/install
 
 .. _the geonode demo site: http://demo.geonode.org
 
