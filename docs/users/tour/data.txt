@@ -1,0 +1,59 @@
+===========
+Data search
+===========
+
+To find data in a GeoNode site, use the "Data" link in the GeoNode navigation tabs.
+This brings you to GeoNode's data search page.
+
+.. figure:: images/GeoNode-Data-Search.png
+   :width: 800
+
+   Searching for rain data in the GeoNode site
+
+You can search by just entering a keyword or phrase describing the topic you are interested in.
+If you want to browse all data in the GeoNode site, or to filter by geographic area instead of subject matter, click the :menuselection:`Advanced Search` link below the search form.
+
+Further down on this page there is a link to let you add your own data to the GeoNode site.
+You can read more about loading data at :doc:`/users/tour/upload`.
+
+Search results
+==============
+
+After entering a search term, you are taken to a new page containing the results of your search.
+
+.. figure:: images/GeoNode-Data-Results.png
+   :width: 800
+
+   The search results from the "rain" query
+
+Let's take a look at the controls on this page.
+
+*  A search form appears on this page again, allowing you to refine your search if it produces too many results, or to search for something else entirely.
+
+*  An interactive map allowing you to search for data only in some region of interest.
+   To choose a region of interest, use the pan and zoom controls on the map to navigate to the region.
+   When you are happy with the map region, use the :menuselection:`Refine` button below the map to update your search results.
+
+*  A list of the search results are presented in a grid.
+   Each item in the grid has an "expand" button, a title, and a checkbox.
+   
+   .. figure:: images/GeoNode-Data-Link.png
+      
+      Clicking on an entry's title will open the information page for the layer.
+
+   .. figure:: images/GeoNode-Data-Check.png
+      :width: 600
+
+      Checking the checkbox will mark that layer as selected, allowing you to include it in a bulk download or a new map.
+
+   .. figure:: images/GeoNode-Data-Expand.png
+
+      Clicking on the "expand" button will display more information about the layer, and allow you to download the data in various formats.
+
+   Some items also have a globe icon indicating that those search results are for layers not hosted in the GeoNode site.
+   Operations for those layers will be limited: for example, GeoNode can't control permissions for remote layers. 
+
+*  A "basket" of selected data.
+   If you mark a layer's checkbox in the search results, the layer will be added to the basket.
+   After selecting one or more layers, you can use the basket to easily download them all or create a map with those layers as a starting point.
+   See :doc:`linkme` for more information about map composition.

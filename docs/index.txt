@@ -28,9 +28,9 @@ This section provides some tutorials to help users discover what GeoNode's web-b
 
    /users/index
    /users/register
+   /users/explore
    /users/upload
    /users/create
-   /users/explore
    /users/share
 
 For Administrators

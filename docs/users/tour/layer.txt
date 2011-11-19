@@ -1,0 +1,106 @@
+=============
+Layer details
+=============
+
+There are a number of ways to get to a layer's detail page in a GeoNode site.
+If you know a layer's name or some keywords it uses, you can use use :doc:`/users/tour/data` to find it.
+Layers that you own will appear on your :doc:`linkme` profile page.
+GeoNode maps list links to their layers in the sidebar on their own :doc:`linkme` detail pages.
+Of course, if you are already viewing the detail page for a layer, you can use your browser's bookmark function to save it for later, or copy the link to an email or instant message to share it with someone else.
+
+.. figure:: images/GeoNode-Layer-Detail.png
+   :width: 800
+
+   The detail page for a layer shows a preview map of the layer, some additional information about the layer, and a sidebar with relevant links and tools.
+
+
+Preview map
+-----------
+
+The map in this page lets you navigate the data spatially.
+   
+* The identify button toggles identify mode for the map.
+  While identify mode is active (denoted by the button staying "depressed") you can click on a feature on the map to see detailed information about it.
+
+  .. image:: images/GeoNode-Layer-Preview-Identify.png
+
+* To navigate the map, you can click on the arrow controls in the top left of the map.
+  To change the map scale, you can drag the slider immediately below the pan arrows.
+  Dragging the slider up shows more detail; dragging it down increases the size of the visible area.
+
+  .. image:: images/GeoNode-Layer-Preview-Pan.png
+
+* The scale is reported in the bottom right corner of the map, both as a scale line and a ratio.
+  The ratio is displayed in a drop-down control; you can click on it and select among the available scales precisely.
+
+  .. image:: images/GeoNode-Layer-Preview-Scale.png
+
+* There are also some shortcuts: if you have a mouse wheel, you can scroll up and down to zoom in and out respectively.
+  Additionally, if you hold the :kbd:`Shift` key down you can recenter and change scale in one motion by dragging a box around a region of interest.
+
+  .. image:: images/GeoNode-Layer-Preview-ZoomBox.png
+
+* The layer menu on the toolbar lets you select among several background layers to provide context for the data.
+  If none of the available backgrounds make the data clearly visible, you can choose :menuselection:`No background` to view your data by itself.
+
+  .. image:: images/GeoNode-Layer-Preview-Background.png
+
+Links and tools
+---------------
+
+Downloading data
+................
+
+As nice as it is to have a layer available as a web page, sometimes it's useful to have a local copy of the data.
+The :guilabel:`Download` section in the sidebar of the layer page offers full data or pre-rendered map images in a variety of formats.
+
+Styling
+.......
+
+GeoNode allows each layer to have as many styles as users care to design.
+If a layer has multiple styles, you can select among alternatives in the :guilabel:`Styles` section of the sidebar.
+Each style here is accompanied by link to the :abbr:`SLD (Styled Layer Descriptor` for the style, which you can download for your own uses.
+
+If you are :doc:`linkme` logged in, you can also edit styles and create new ones for the layer.
+Click on a style's name to edit the style, or click the :guilabel:`Create new style` link to create a new one.
+
+See :doc:`linkme` for more information on editing styles in GeoNode.
+
+Management (Metadata and updating the layer)
+............................................
+
+If you have permission to edit a layer, GeoNode will offer you some extra links in the sidebar.
+
+:guilabel:`Update the description of this layer` lets you edit the title, abstract, and other metadata for the layer.
+Having correct metadata will help other users to find your data in search, so make sure to describe it well.
+See :doc:`linkme` for more information on editing metadata in GeoNode.
+
+:guilabel:`Upload a new version of this layer` lets you upload a new Shapefile to replace the existing layer.
+Be careful!
+Some styles may depend on specific attribute names, so this operation can cause existing maps to stop rendering properly.
+To avoid this, make sure that attribute names are consistent when you update a layer.
+However, if problems arise, you can simply delete the problematic styles, or edit them to reflect the new attribute names.
+
+:guilabel:`Remove` allows you to permanently remove a layer from the GeoNode site.
+This does not prevent other users from reusing the same name, so if you are concerned about broken links it may be better to restrict access to the layer instead.
+
+Permissions
+...........
+
+For layers that you own, or where the owner has granted you administrative privileges, you can edit permissions in the layer detail page too.
+
+.. image:: images/GeoNode-Layer-Security.png
+
+The layer permissions are broken up into three lists of users:
+
+* **Who can view this data?** determines which users are even allowed to browse to the layer page.
+  Setting this to "anyone" means that anyone in the world can access the layer and download it.
+  Setting it to "any registered user" means that anyone with an account on the GeoNode site can access the layer.
+  Otherwise, only users with permissions to edit (see below) will be able to see the layer.
+
+* **Who can edit this data?** determines which users can make modifications to the metadata or upload a new version of the data.
+  Setting this to "any registered user" allows anyone with an account on the GeoNode site to make those changes.
+  Otherwise, you can specify a list of specific users who will be allowed to edit the layer.
+  Users with edit permissions implicitly have view permissions as well.
+
+* **Who can manage and edit this data?** lets you provide an additional list of users with permission to grant other users permissions to the layer.

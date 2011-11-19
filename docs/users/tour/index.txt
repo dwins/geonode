@@ -1,0 +1,60 @@
+===============
+Tour of GeoNode
+===============
+
+GeoNode's features are spread out across several pages - we try to make everything its own page so that everything can be linked on the web.
+This section of the manual provides a guide to the layout and features of the pages in a basic GeoNode installation.
+Of course, some GeoNode sites may modify the layout or add new pages, so things may not align 100% with your GeoNode site.
+
+GeoNode conventions
+===================
+
+GeoNode tries keep things organized.
+To see some basic reference points in GeoNode pages, let's take a look at the GeoNode home page.
+
+.. figure:: images/GeoNode-Home.png
+    :width: 800
+
+    The GeoNode home page
+
+Navigation
+----------
+
+.. figure:: images/GeoNode-Header.png
+    :width: 800
+
+First, let's look at the header for the page.
+
+1. In the top left you can see a big GeoNode logo - although it it quite common for an organization running a GeoNode to use its logo instead of the default GeoNode one.
+   From any page, you can always use the logo link to get back to the GeoNode home page.
+
+2. At the top right, you can see whether or not you are logged in.
+   If you don't have an account or you've logged out, GeoNode puts a link here to allow you to log in, or :doc:`linkme` register for an account.
+   Once you've logged in, this area switches to tell you your username.
+   There are links here to allow you to visit and edit your :doc:`linkme` user profile, and to log out of the site.
+
+3. Directly below the logo, GeoNode provides some convenient links for accessing commonly used parts of the site.
+   While your site may include additional pages or tools here, GeoNode includes the following links by default.
+
+   * The **Home** link takes you to the GeoNode home page.
+
+   * The **Data** link takes you to the :doc:`linkme` layer search page.
+
+   * The **Maps** link takes you to the :doc:`linkme` map search page.
+
+4. At the far right end of the tab bar, there is also a language selector.
+   Choosing a different language here will activate a different translation for the GeoNode site, but titles and descriptions for layers and maps will still be in the language used by their authors.
+
+Content
+-------
+
+After the header, the main content of the page begins.
+Most pages in GeoNode split their main content into two sections.
+The main section focuses on presenting information such as search results or a map preview, while a sidebar provides related tools and links.
+Since the information presented on the home page is just tools and links already, it does not have a side bar.
+However, a good example of a page using this layout is the :doc:`linkme` layer information page.
+
+.. figure:: images/GeoNode-Layer-View.png
+    :width: 800
+
+    A GeoNode page dividing the main content into a presentation area, containing a layer and its metadata, and a sidebar, containing links to related information and tools for managing styles and permissions

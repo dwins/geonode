@@ -1,0 +1,21 @@
+==============
+Uploading data
+==============
+
+To upload data to a GeoNode site, first :doc:`linkme` register and log in.
+Once you are logged in, you can click the "Data" link near the top of any GeoNode page, taking you to the page used for :doc:`/users/tour/data`.
+Below the search form, find the link to :guilabel:`Upload a new layer`.
+This brings you to the data upload form.
+
+.. figure:: images/GeoNode-Upload-Form.png
+   :width: 800
+
+   Uploading a Shapefile with data about bridges
+
+When uploading a layer, the only necessary part of the form is the file - a generic title, abstract, and style will be generated for you automatically based on the filename.
+Of course, it's useful to specify a useful title and abstract to ensure that your data shows up in search results for relevant terms.
+It is possible to update the metadata after the upload is completed.
+If access to a layer needs to be restricted, please ensure that the correct security permissions are set before submitting the form: as soon as you do the layer will be discoverable through search and accessible through GeoNode's :abbr:`OWS (Open Web Services)` services.
+
+Upon successful import of the data GeoNode will bring you to the metadata form for the layer.
+See :doc:`linkme` for more information about editing metadata in GeoNode.
