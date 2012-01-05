@@ -179,12 +179,15 @@ def prepare_upload_archive(basefile, name):
             return basefile
     else: # not a zip archive
         components = get_files(basefile)
-        archive_path = tempfile.mkstemp()[1]
-        archive = zipfile.ZipFile(archive_path, 'w')
-        for ext, path in components.iteritems():
-            archive.write(path, arcname=("%s.%s" % (name, ext)))
-        archive.close()
-        return archive_path
+        if len(components) > 1:
+            archive_path = tempfile.mkstemp()[1]
+            archive = zipfile.ZipFile(archive_path, 'w')
+            for ext, path in components.iteritems():
+                archive.write(path, arcname=("%s.%s" % (name, ext)))
+            archive.close()
+            return archive_path
+        else:
+            return basefile
 
 def get_valid_name(layer_name):
     """Create a brand new name
@@ -404,7 +407,7 @@ def save(layer, base_file, user, overwrite = True, title=None, abstract=None, pe
     # Step 6. Make sure our data always has a valid projection
     # FIXME: Put this in gsconfig.py
     logger.info('>>> Step 6. Making sure [%s] has a valid projection' % name)
-    if gs_resource.latlon_bbox is None:
+    if gs_resource.latlon_bbox is None or gs_resource.projection is None:
         box = gs_resource.native_bbox[:4]
         minx, maxx, miny, maxy = [float(a) for a in box]
         if -180 <= minx <= 180 and -180 <= maxx <= 180 and \
@@ -415,7 +418,11 @@ def save(layer, base_file, user, overwrite = True, title=None, abstract=None, pe
 
             gs_resource.latlon_bbox = gs_resource.native_bbox
             gs_resource.projection = "EPSG:4326"
+            gs_resource.projection_policy = "FORCE_DECLARED"
             cat.save(gs_resource)
+            publishing = cat.get_layer(name)
+            publishing.enabled = True
+            cat.save(publishing)
         else:
             msg = "GeoServer failed to detect the projection for layer [%s]. It doesn't look like EPSG:4326, so backing out the layer."
             logger.warn(msg, name)
