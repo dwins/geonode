@@ -250,7 +250,7 @@ def setup_geonode_client(options):
     dst_zip = static / "geonode-client.zip"
 
     # grab(src_url, dst_zip)
-    dst_zip = "/home/dwins/Projects/geonode-client/build/geonode-client.zip"
+    dst_zip = "/home/dwins/Projects/opengeo/geonode-client/build/geonode-client.zip"
 
     zip_extractall(zipfile.ZipFile(dst_zip), static)
     # dst_zip.remove()
