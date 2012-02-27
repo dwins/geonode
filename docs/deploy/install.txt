@@ -2,7 +2,9 @@
 Complete Installation Guide
 ===========================
 
-.. note:: The quick installation guide contains instructions to set it up in most common platforms. It can be found :doc:`here </intro/install>`.
+.. seealso:: 
+   This section provides detailed instructions for manual configuration.
+   For a more convenient automated install process, see :doc:`/intro/install` .
 
 This page describes a generic installation process for GeoNode systems.
 For some platforms the GeoNode project also provides customized installers which are easier to use and more reliable.
@@ -37,31 +39,31 @@ This packaging contains both the Java and Django web application code for GeoNod
 
 Some scripts are included to assist in configuring this external software in a default recommended configuration.
 
-These scripts have been tested on Ubuntu, please review them carefully before using them on another operating system.
+Please review these scripts carefully as they change system configuration files.
 
 .. note:: 
 
-    While we intend to provide a detailed, accurate explanation of the
-    installation process, it may become out of date.  If you run into problems
-    with the process described in this document, please don't hesitate to let
-    the GeoNode team know so we can keep it up to date.
+   While we intend to provide a detailed, accurate explanation of the installation process, it may become out of date.
+   If you run into problems with the process described in this document, please don't hesitate to let the GeoNode team know so we can keep it up to date.
 
 The stack used is:
 
-* *Servlet Container*: Apache Tomcat
+* *Servlet container*: `Apache Tomcat <http://tomcat.apache.org/>`_
 
-* *Static File Server*: Apache httpd
+* *Static file server*: `Apache httpd <http://httpd.apache.org/>`_
 
-* *Python/WSGI Container*: mod_wsgi
+* *Python/WSGI container*: `mod_wsgi <http://code.google.com/p/modwsgi/>`_
 
-* *Django Database*: PostgresQL
+* *Database server*: `PostgreSQL <http://postgresql.org/>`_
 
 
 Download GeoNode Release Archive
 --------------------------------
 You get the latest GeoNode release from http://dev.geonode.org/release/ or the `GeoNode project wiki <http://dev.geonode.org/trac/>`_ .
 
-You can unpack it like::
+You can extract the files using the `tar` command:
+
+.. code-block:: console
 
    $ tar xvzf GeoNode-1.1.tar.gz
    GeoNode-1.1/geonetwork.war
@@ -79,70 +81,93 @@ Installing Dependencies
 -----------------------
 
 As mentioned above, you must have some external software installed before you can setup GeoNode.
-This includes:
 
-* A Python interpreter
-
-* A Java Runtime Environment (JRE)
-
-* Apache Tomcat servlet container
- 
-* Python development libraries
-
-* PostgresQL database
-
-* The GDAL, GEOS, and OGR geospatial software libraries
-
-For convenience, appropriate commands to retrieve these dependencies on different OS's are listed below:
+For convenience, appropriate commands to retrieve these dependencies for some common operating systems are listed below.
 
 Ubuntu
 ......
 
-.. code-block:: bash
+.. code-block:: console
 
+    $ sudo apt-get update 
     $ sudo apt-get install python python-support python-dev python-virtualenv \
-        openjdk-6-jre tomcat6 postgresql-8.4 gcc patch zip python-imaging \
-        gdal-bin libgeos-dev python-urlgrabber \
-        python-pastescript gettext postgresql-contrib \
-        postgresql-8.4-postgis,libpq-dev unzip libjpeg-dev libpng-dev
-        python-gdal \ libproj-dev python-psycopg2 apache2 libapache2-mod-wsgi
+      openjdk-6-jre tomcat6 postgresql-8.4 gcc patch zip python-imaging \
+      gdal-bin libgeos-dev python-urlgrabber python-pastescript gettext \
+      postgresql-contrib postgresql-8.4-postgis libpq-dev unzip libjpeg-dev \
+      libpng-dev python-gdal libproj-dev python-psycopg2 apache2  \
+      libapache2-mod-wsgi
 
-RHEL/CentOS
-...........
 
-.. TODO: This is likely to be incorrect
+Red Hat Enterprise Linux, CentOS
+................................
 
-.. code-block:: bash
+Because the default repositories for CentOS and Red Hat Enterprise Linux are restricted to well-vetted packages, some of GeoNode's dependencies are not available without additional package repositories.
+Adding the `Extra Packages for Enterprise Linux <http://fedoraproject.org/wiki/EPEL>`_ and `Enterprise Linux GIS <http://elgis.argeo.org>`_ repositories should allow all the dependencies to be installed.
+If using a pre-built machine image such as those provided on Amazon's Elastic Compute Cloud service, one or both of these repositories may already be installed.
+If not, they provide architecture-independent RPMs which can be used to conveniently enable the repository.
+For example, on CentOS 5.x you can enable them with the following commands:
 
-    $ su -c 'yum install python26'
-    $ su -c 'yum install httpd'
-    $ su -c 'yum install python26-virtualenv'
-    $ su -c 'yum install python26_mod_wsgi'
+.. code-block:: console
+
+   # rpm -Uvh http://dl.fedoraproject.org/pub/epel/5/i386/epel-release-5-4.noarch.rpm 
+   # rpm -Uvh http://http://elgis.argeo.org/repos/5/elgis-release-5-5_0.noarch.rpm
+
+You can check whether these repositories are enabled using the `yum` command:
+
+.. code-block:: console
+
+   # yum repo list
+   ...
+   elgis       EL GIS 5 - i386                                   enabled:    75
+   epel        Extra Packages for Enterprise Linux 5 - i386      enabled: 5,618
+
+With these repositories in place, you can use `yum` again to install GeoNode's requirements.
+
+.. code-block:: console
+
+   $ yum install postgis postgresql84-server postgresql84-devel \
+     python26-virtualenv python26-distribute python26-mod_wsgi gcc \
+     java-1.6.0-openjdk-devel tomcat5 httpd gdal-devel
 
 Installation
 ------------
 
+GeoNode tar.gz distributions include an :file:`install.sh` script to automate basic installations (ones where GeoNode is deployed on a dedicated machine with all components on the same server.)
+Aside from database setup and web application deployment, this script also sets up a few conveniences to make administration simpler:
+
+* It installs a ``geonode`` command in the system path which can be used to access the `Django <http://djangoproject.com/>` commandline tools without navigating to the GeoNode virtualenv and specifying the settings module.
+
+* It sets up symbolic links in :file:`/etc/geonode/` to consolidate commonly-accessed GeoNode configuration files.
+
+* It sets up symbolic links in :file:`/var/log/geonode` to consolidate the server logs for the Python- and Java-based components of GeoNode.
+
+To run the script:
+
 1) The installer script has a configuration file associated with it which allows you to provide the details of your installation, such as where your webserver looks for documents.
 
-   These vary from distribution to distribution - for example Ubuntu systems keep Apache site configurations in /etc/apache2/sites-available/ while CentOS uses /etc/httpd/conf.d/; and of course if you are using custom-built software you may need a totally separate configuration.
+   These vary from distribution to distribution - for example Ubuntu systems keep Apache site configurations in :file:`/etc/apache2/sites-available/` while CentOS uses :file:`/etc/httpd/conf.d/`; and of course if you are using custom-built software you may need a totally separate configuration.
 
    Samples for common platforms are included, please check for one that matches your distribution.
 
    If it is not available or you would like to install to a custom directory, the configurations are simple shell scripts and you can copy and modify one to meet your needs.
 
-   More instructions can be found in the README distributed with the release as well as the pointer to the documentation page about configuring GeoNode for production after it has been installed.
+   More instructions can be found in the ``README`` distributed with the release as well as the pointer to the documentation page about configuring GeoNode for production after it has been installed.
 
-2) After unpacking the .tar.gz archive and locating or constructing a configuration for the install, you can install GeoNode by simply running the script (usually it is necessary to run it as a root user to allow adding files to system directories.)
+2) After unpacking the .tar.gz archive and locating or constructing a configuration for the install, you can install GeoNode by simply running the script.
+   The included configurations modify system files (such as the system httpd and Tomcat configuration files) so it is necessary to run it as a root user.)
 
-   For example, on ubuntu you can use the provided configuration in support/config-ubuntu.sh ::
+   For example, on Ubuntu you can use the provided configuration in :file:`support/config-ubuntu.sh`:
 
-    $ cd GeoNode-1.1/
-    $ sudo ./install.sh support/config-ubuntu.sh
+   .. code-block:: console
+
+      $ cd GeoNode-1.1/
+      $ sudo ./install.sh support/config-ubuntu.sh
 
 
 Manual Installation
 ===================
 
+If the automated script is insufficient for your needs, the GeoNode 
 This section is mostly intended for packagers working on installers for GeoNode on new platforms.
 If you simply want a customized installation of GeoNode, we recommend reviewing and modifying the installer script included with GeoNode instead of starting "from scratch."
 
@@ -170,13 +195,13 @@ The key steps for setting up a GeoNode installation are as follows:
 
    Two settings files contain the settings relevant to most GeoNode deployments:
 
-   * GeoServer's ``WEB-INF/web.xml`` file; this will be in the "exploded war" directory created when your servlet container deploys the GeoServer application.
+   * GeoServer's :file:`WEB-INF/web.xml` file; this will be in the "exploded war" directory created when your servlet container deploys the GeoServer application.
 
-     You can edit it in the text editor of your choice, add a config-param element with the name "GEONODE_BASE_URL" and the value being the base URL of your site.
+     You can edit it in the text editor of your choice, add a config-param element with the name `GEONODE_BASE_URL` and the value being the base URL of your site.
 
-   * The Django application's ``settings.py`` file; this will be in the directory where you installed the Django application under ``src/GeoNodePy/settings.py``.
+   * The Django application's :file:`settings.py` file; this will be in the directory where you installed the Django application under :file:`src/GeoNodePy/settings.py`.
 
-     In order to simplify upgrades, it is recommended to create a new file next to it named ``local_settings.py`` for your own settings; any settings in this file will override the default ones in the settings file included with GeoNode.
+     In order to simplify upgrades, it is recommended to create a new file next to it named `local_settings.py` for your own settings; any settings in this file will override the default ones in the settings file included with GeoNode.
 
      The settings to use here are:
     
