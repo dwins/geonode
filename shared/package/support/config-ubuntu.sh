@@ -12,7 +12,7 @@ GEOSERVER_DATA_DIR=$TARGET_ROOT/var/lib/geoserver/geonode-data
 # Place where GeoNode media is going to be served
 GEONODE_WWW=$TARGET_ROOT/var/www/geonode
 # Apache sites directory
-APACHE_SITES=$TARGET_ROOT/etc/apache2/sites-available
+APACHE_CONFIG_FILE="${TARGET_ROOT}/etc/apache2/sites-available/geonode"
 # Place where the GeoNode virtualenv would be installed
 GEONODE_LIB=$TARGET_ROOT/var/lib/geonode
 # Path to preferred location of binaries (might be /usr/sbin for CentOS)

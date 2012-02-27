@@ -83,5 +83,3 @@ The step flag supports three values: 'pre', 'post' and 'all'. Default is 'all'. 
 
     # in debian/postinst
     ./install.sh -s post support/config.sh
-
-

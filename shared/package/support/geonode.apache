@@ -1,11 +1,12 @@
-WSGIDaemonProcess geonode user=www-data threads=15 processes=2 python-path=REPLACE_WITH_SITEDIR
+WSGIDaemonProcess geonode user=apache threads=15 processes=2 python-path=REPLACE_WITH_SITEDIR
+WSGISocketPrefix run/wsgi
 <VirtualHost *:80>
     Servername localhost
     ServerAdmin webmaster@localhost
 
-    ErrorLog /var/log/apache2/error.log
+    ErrorLog /var/log/httpd/error_log
     LogLevel warn
-    CustomLog /var/log/apache2/access.log combined
+    CustomLog /var/log/httpd/access_log combined
 
     WSGIProcessGroup geonode
     WSGIPassAuthorization On

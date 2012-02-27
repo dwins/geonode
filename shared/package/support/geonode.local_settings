@@ -73,13 +73,13 @@ DEFAULT_LAYERS_OWNER='admin'
 GEONODE_ROOT = os.path.dirname(geonode.__file__)
 
 TEMPLATE_DIRS = (
-    '/etc/geonode/templates',
+    '@@CUSTOM_TEMPLATE_DIR@@',
     os.path.join(GEONODE_ROOT, 'templates'),
 )
 
 # Additional directories which hold static files
 STATICFILES_DIRS = [
-    '/etc/geonode/media',
+    '@@CUSTOM_MEDIA_DIR@@',
     os.path.join(GEONODE_ROOT, 'media'),
 ]
 # Uncomment the following to receive emails whenever there are errors in GeoNode

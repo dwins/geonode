@@ -4,10 +4,10 @@
 # using getopts
 #
 
-if [[ $EUID -ne 0 ]]; then
-   echo "This script must be run as root" 1>&2
-   exit 1
-fi
+# if [[ $EUID -ne 0 ]]; then
+#    echo "This script must be run as root" 1>&2
+#    exit 1
+# fi
 
 while getopts 's:' OPTION
 do
@@ -29,7 +29,7 @@ function setup_directories() {
 	mkdir -p $GEONODE_WWW/static
 	mkdir -p $GEONODE_WWW/uploaded
 	mkdir -p $GEONODE_WWW/wsgi
-	mkdir -p $APACHE_SITES
+	mkdir -p $(dirname "${APACHE_CONFIG_FILE}")
 	mkdir -p $GEONODE_LIB
 	mkdir -p $GEONODE_BIN
 	mkdir -p $GEONODE_ETC
@@ -47,7 +47,7 @@ function unpack_archives() {
 
 function reorganize_configuration() {
 	mv $TOMCAT_WEBAPPS/geoserver/data/* $GEOSERVER_DATA_DIR
-	cp -rp $INSTALL_DIR/support/geonode.apache $APACHE_SITES/geonode
+	cp -rp $INSTALL_DIR/support/geonode.apache "${APACHE_CONFIG_FILE}"
 	cp -rp $INSTALL_DIR/support/geonode.wsgi $GEONODE_WWW/wsgi/
 	cp -rp $INSTALL_DIR/support/geonode.robots $GEONODE_WWW/robots.txt
 	cp -rp $INSTALL_DIR/geonode-webapp.pybundle $GEONODE_LIB
@@ -76,12 +76,12 @@ function randpass() {
 
 function setup_tomcat_once() {
 # configure tomcat defaults to avoid geonetwork bug and increase the available ram
-cat >> /etc/default/tomcat6 <<- EOF 
+cat >> "${TOMCAT_DEFAULTS}" <<- EOF 
 JAVA_OPTS='-Djava.awt.headless=true -Xmx1024m -Xms1024M -XX:MaxPermSize=256m -XX:CompileCommand=exclude,net/sf/saxon/event/ReceivingContentHandler.startElement'
 EOF
 patch $GEONODE_ETC/geonetwork/config.xml $GEONODE_SHARE/geonetwork.patch
 patch $GEONODE_ETC/geoserver/web.xml $GEONODE_SHARE/geoserver.patch
-sed -i "s/GEONODE_DATABASE_PASSWORD/$psqlpass/g" $GEONODE_ETC/geonetwork/config.xml
+sed -i "s/GEONODE_DATABASE_PASSWORD/${GEONODE_DATABASE_PASSWORD}/g" $GEONODE_ETC/geonetwork/config.xml
 }
 
 function setup_tomcat_every_time() {
@@ -93,30 +93,12 @@ cp -rp $GEONODE_ETC/geoserver/web.xml $TOMCAT_WEBAPPS/geoserver/WEB-INF/web.xml
 # Set up logging symlinks to /var/log/geonode
 # Should only be needed once, but also won't hurt anything if run again.
 mkdir -p $GEONODE_LOG
-ln -sf /var/log/tomcat6/catalina.out $GEONODE_LOG/tomcat.log
-ln -sf /var/log/tomcat6/geonetwork.log $GEONODE_LOG/geonetwork.log
-ln -sf $GEOSERVER_DATA_DIR/logs/geoserver.log $GEONODE_LOG/geoserver.log
+ln -sf "${TOMCAT_LOGS}"/catalina.out "${GEONODE_LOG}/tomcat.log"
+ln -sf "${TOMCAT_LOGS}"/geonetwork.log "${GEONODE_LOG}/geonetwork.log"
+ln -sf "${GEOSERVER_DATA_DIR}/logs/geoserver.log" "${GEONODE_LOG}/geoserver.log"
 
 # Set the tomcat user as the owner
-chown -R tomcat6. $GEOSERVER_DATA_DIR $TOMCAT_WEBAPPS/geonetwork $TOMCAT_WEBAPPS/geoserver
-}
-
-function setup_postgres_once() {
-    su - postgres <<EOF
-createdb -E UTF8 geonode
-createlang -d geonode plpgsql
-psql -d geonode -f $POSTGIS_SQL_PATH/$POSTGIS_SQL
-psql -d geonode -f $POSTGIS_SQL_PATH/spatial_ref_sys.sql
-psql -d geonode -c 'GRANT ALL ON geometry_columns TO PUBLIC;'
-psql -d geonode -c 'GRANT ALL ON spatial_ref_sys TO PUBLIC;'
-EOF
-if ((GEOGRAPHY))
-then
-    su - postgres -c "psql -d geonode -c 'GRANT ALL ON geography_columns TO PUBLIC;'"
-fi
-su - postgres -c "psql" <<EOF
-CREATE ROLE geonode WITH LOGIN PASSWORD '$psqlpass' SUPERUSER INHERIT;
-EOF
+chown -R "${TOMCAT_USER}". $GEOSERVER_DATA_DIR $TOMCAT_WEBAPPS/geonetwork $TOMCAT_WEBAPPS/geoserver
 }
 
 function setup_postgres_every_time() {
@@ -124,16 +106,20 @@ function setup_postgres_every_time() {
 }
 
 function setup_django_once() {
-    sed -i "s/THE_SECRET_KEY/$secretkey/g" $GEONODE_ETC/local_settings.py
-    sed -i "s/THE_GEOSERVER_PASSWORD/$geoserverpass/g" $GEONODE_ETC/local_settings.py
-    sed -i "s/THE_DATABASE_PASSWORD/$psqlpass/g" $GEONODE_ETC/local_settings.py
+    sed \
+      -e "s/THE_SECRET_KEY/$secretkey/g" \
+      -e "s/THE_GEOSERVER_PASSWORD/$geoserverpass/g" \
+      -e "s/THE_DATABASE_PASSWORD/${GEONODE_DATABASE_PASSWORD}/g" \
+      -e "s!@@CUSTOM_TEMPLATE_DIR@@!${CUSTOM_TEMPLATE_DIR}!g" \
+      -e "s!@@CUSTOM_MEDIA_DIR@@!${CUSTOM_MEDIA_DIR}!g" \
+      -i "${GEONODE_ETC}/local_settings.py"
 }
 
 function setup_django_every_time() {
     pushd $GEONODE_LIB
-    easy_install -U virtualenv
-    easy_install -U pip
-    virtualenv .
+#     easy_install -U virtualenv
+#     easy_install -U pip
+    virtualenv-2.6 .
 
     if [ ! -f bin/activate ]
     then
@@ -162,15 +148,13 @@ function setup_django_every_time() {
 }
 
 function setup_apache_once() {
-	chown www-data -R $GEONODE_WWW
-	a2dissite default
-	a2enmod proxy_http
+	chown "${WEB_CONTENT_OWNER}" -R $GEONODE_WWW
 	sitedir=`$GEONODE_LIB/bin/python -c "from distutils.sysconfig import get_python_lib; print get_python_lib()"`
         
-	sed -i '1d' $APACHE_SITES/geonode
-	sed -i "1i WSGIDaemonProcess geonode user=www-data threads=15 processes=2 python-path=$sitedir" $APACHE_SITES/geonode
+	sed -i '1d' "${APACHE_CONFIG_FILE}"
+	sed -i "1i WSGIDaemonProcess geonode user=apache threads=15 processes=2 python-path=$sitedir" "${APACHE_CONFIG_FILE}"
 
-	a2ensite geonode
+        configure_apache
         $APACHE_SERVICE restart
 }
 
